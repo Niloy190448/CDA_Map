@@ -3,21 +3,19 @@ var selected, features, layer_name, layerControl;
 var content;
 var selectedFeature;
 
+
 var view = new ol.View({
     projection: 'EPSG:4326',
-    center: [89.00, 23.00],
+    center: [90.00, 23.00],
     zoom: 7,
-    // Disable zoom buttons
-    
-});
 
+});
 var view_ov = new ol.View({
     projection: 'EPSG:4326',
-    center: [89.00, 23.00],
+    center: [90.00, 23.00],
     zoom: 7,
-    // Disable zoom buttons
-    
 });
+
 
 var base_maps = new ol.layer.Group({
     'title': 'Base maps',
@@ -57,18 +55,24 @@ overlays = new ol.layer.Group({
     layers: []
 });
 
-/*var ind_state = new ol.layer.Image({
-            title: 'india_state',
-            // extent: [-180, -90, -180, 90],
-            source: new ol.source.ImageWMS({
-                url: 'http://localhost:8080/geoserver/wms',
-                params: {
-                    'LAYERS': 'india:india_state'
-                },
-                ratio: 1,
-                serverType: 'geoserver'
-            })
-        });*/
+
+// Chottogram WMS layer
+var Chottogram = new ol.layer.Image({
+    title: 'mouza_plot',
+    extent: [91.68302126827828, 22.218422153378214, 92.04968709997158, 22.59149658021483], // Bounding box coordinates
+    source: new ol.source.ImageWMS({
+        url: 'http://localhost:8080/geoserver/Chottogram/wms',
+        params: {
+            'LAYERS': 'Chottogram:mouza_plot',
+            'TILED': true, // Improves performance for tiled requests
+        },
+        ratio: 1,
+        serverType: 'geoserver',
+    }),
+});
+
+// Add Chottogram layer to overlays
+overlays.getLayers().push(Chottogram);
 
 map = new ol.Map({
     target: 'map',
@@ -85,18 +89,7 @@ map.addOverlay(popup);
 
 var mouse_position = new ol.control.MousePosition();
 map.addControl(mouse_position);
-//var slider = new ol.control.ZoomSlider();
-//map.addControl(slider);
 
-
-
-var zoom_ex = new ol.control.ZoomToExtent({
-    extent: [
-        65.90, 7.48,
-        98.96, 40.30
-    ]
-});
-map.addControl(zoom_ex);
 
 var scale_line = new ol.control.ScaleLine({
     units: 'metric',
@@ -110,7 +103,7 @@ map.addControl(scale_line);
 
 layerSwitcher = new ol.control.LayerSwitcher({
     activationMode: 'click',
-    startActive: false,
+    startActive: true,
     tipLabel: 'Layers', // Optional label for button
     groupSelectStyle: 'children', // Can be 'children' [default], 'group' or 'none'
     collapseTipLabel: 'Collapse layers',
@@ -861,28 +854,23 @@ function add_layer() {
 function close_wms_window() {
     layer_name = undefined;
 }
+// function on click of getinfo
 function info() {
-    var infoBtn = document.getElementById("info_btn");
-    var infoIcon = infoBtn.querySelector("img");
+    if (document.getElementById("info_btn").innerHTML == "☰ Activate GetInfo") {
 
-    if (infoBtn.classList.contains("active")) {
+        document.getElementById("info_btn").innerHTML = "☰ De-Activate GetInfo";
+        document.getElementById("info_btn").setAttribute("class", "btn btn-danger btn-sm");
+        map.on('singleclick', getinfo);
+    } else {
+
         map.un('singleclick', getinfo);
-        infoBtn.classList.remove("active");
-        infoBtn.classList.remove("btn-danger");
-        infoBtn.classList.add("btn-success");
-        infoIcon.src = "libs/icon/info.svg";
+        document.getElementById("info_btn").innerHTML = "☰ Activate GetInfo";
+        document.getElementById("info_btn").setAttribute("class", "btn btn-success btn-sm");
         if (popup) {
             popup.hide();
         }
-    } else {
-        map.on('singleclick', getinfo);
-        infoBtn.classList.add("active");
-        infoBtn.classList.remove("btn-success");
-        infoBtn.classList.add("btn-danger");
-        infoIcon.src = "libs/icon/info.svg"; // Change to the path of your deactivate icon
     }
 }
-
 
 // getinfo function
 function getinfo(evt) {
@@ -971,7 +959,7 @@ function clear_all() {
     });
 
 
-    //document.getElementById("query_panel_btn").innerHTML = "☰ Open Query Panel";
+    document.getElementById("query_panel_btn").innerHTML = "☰ Open Query Panel";
     document.getElementById("query_panel_btn").setAttribute("class", "btn btn-success btn-sm");
 
     document.getElementById("query_tab").style.width = "0%";
@@ -980,14 +968,14 @@ function clear_all() {
     document.getElementById("query_tab").style.visibility = "hidden";
     document.getElementById('table_data').style.left = '0%';
 
-    //document.getElementById("legend_btn").innerHTML = "☰ Show Legend";
+    document.getElementById("legend_btn").innerHTML = "☰ Show Legend";
     document.getElementById("legend").style.width = "0%";
     document.getElementById("legend").style.visibility = "hidden";
     document.getElementById('legend').style.height = '0%';
 
     map.un('singleclick', getinfo);
     map.un('singleclick', highlight);
-    //document.getElementById("info_btn").innerHTML = "☰ Activate GetInfo";
+    document.getElementById("info_btn").innerHTML = "☰ Activate GetInfo";
     document.getElementById("info_btn").setAttribute("class", "btn btn-success btn-sm");
     map.updateSize();
 
@@ -1031,7 +1019,7 @@ function show_hide_querypanel() {
 
     if (document.getElementById("query_tab").style.visibility == "hidden") {
 
-        //document.getElementById("query_panel_btn").innerHTML = "☰ Hide Query Panel";
+        document.getElementById("query_panel_btn").innerHTML = "☰ Hide Query Panel";
         document.getElementById("query_panel_btn").setAttribute("class", "btn btn-danger btn-sm");
         document.getElementById("query_tab").style.visibility = "visible";
         document.getElementById("query_tab").style.width = "21%";
@@ -1041,7 +1029,7 @@ function show_hide_querypanel() {
         document.getElementById('table_data').style.left = '21%';
         map.updateSize();
     } else {
-        //document.getElementById("query_panel_btn").innerHTML = "☰ Open Query Panel";
+        document.getElementById("query_panel_btn").innerHTML = "☰ Open Query Panel";
         document.getElementById("query_panel_btn").setAttribute("class", "btn btn-success btn-sm");
         document.getElementById("query_tab").style.width = "0%";
         document.getElementById("map").style.width = "100%";
@@ -1057,7 +1045,7 @@ function show_hide_legend() {
 
     if (document.getElementById("legend").style.visibility == "hidden") {
 
-       // document.getElementById("legend_btn").innerHTML = "☰ Hide Legend";
+        document.getElementById("legend_btn").innerHTML = "☰ Hide Legend";
 		document.getElementById("legend_btn").setAttribute("class", "btn btn-danger btn-sm");
 
         document.getElementById("legend").style.visibility = "visible";
@@ -1067,7 +1055,7 @@ function show_hide_legend() {
         map.updateSize();
     } else {
 	    document.getElementById("legend_btn").setAttribute("class", "btn btn-success btn-sm");
-        //;document.getElementById("legend_btn").innerHTML = "☰ Show Legend";
+        document.getElementById("legend_btn").innerHTML = "☰ Show Legend";
         document.getElementById("legend").style.width = "0%";
         document.getElementById("legend").style.visibility = "hidden";
         document.getElementById('legend').style.height = '0%';
@@ -1351,7 +1339,7 @@ measuretype.onchange = function() {
 
 
     map.un('singleclick', getinfo);
-    //document.getElementById("info_btn").innerHTML = "☰ Activate GetInfo";
+    document.getElementById("info_btn").innerHTML = "☰ Activate GetInfo";
     document.getElementById("info_btn").setAttribute("class", "btn btn-success btn-sm");
     if (popup) {
         popup.hide();
